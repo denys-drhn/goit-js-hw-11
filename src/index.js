@@ -22,7 +22,7 @@ refs.loadMoreBtn.classList.add('is-hidden');
 function onSearchClick(event) {
 	event.preventDefault();
 	
-	imagesApiServise.query = event.currentTarget.elements.searchQuery.value; // значение ввода через метод SET
+	imagesApiServise.query = event.currentTarget.elements.searchQuery.value.trim(); // значение ввода через метод SET + trim()
 	
 	if (imagesApiServise.query === '') {
 		Notify.warning("Sorry, there are no images matching your search query. Please try again.");
