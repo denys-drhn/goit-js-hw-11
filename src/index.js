@@ -62,7 +62,6 @@ function onLoadMoreBtnClick() {
 		refs.loadMoreBtn.classList.add('is-hidden');
 		Notify.failure("We're sorry, but you've reached the end of search results.");
 		};
-		console.log(hits.length);
 		appendHitsMarkup(hits);
 	}).catch(error => {
 		console.log(error);
