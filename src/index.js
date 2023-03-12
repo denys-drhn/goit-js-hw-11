@@ -63,18 +63,9 @@ async function onLoadMoreBtnClick() {
 	
 	try {
 		const data = await imagesApiServise.fechImages();
-		// console.log(data);
-		const hits = data.hits;
-		// console.log(hits.length);
-		
-		// if (hits.length < 40) {
-		// refs.loadMoreBtn.classList.add('is-hidden');
-		// Notify.failure("We're sorry, but you've reached the end of search results.");
-		// };
 
-		MAX_ITEMS = data.totalHits;
-		// console.log(MAX_ITEMS);
-		console.log(loadedItems);
+		const hits = data.hits;
+
 if (loadedItems < 40) {
 	refs.loadMoreBtn.classList.add('is-hidden');
 	Notify.failure("We're sorry, but you've reached the end of search results.");
