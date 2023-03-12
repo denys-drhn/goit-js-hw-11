@@ -15,7 +15,7 @@ refs.loadMoreBtn.addEventListener('click', onLoadMoreBtnClick);
 
 const imagesApiServise = new ImagesApiServise();
 // console.log(imagesApiServise);
-let loadedItems = 500;
+let loadedItems;
 
 refs.loadMoreBtn.classList.add('is-hidden');
 
@@ -45,7 +45,9 @@ async function onSearchClick(event) {
 		const hits = data.hits;
 		clearHitsMarkup();
 		appendHitsMarkup(hits);
+		loadedItems = data.totalHits;
 		loadedItems -= hits.length;
+		
 		setTimeout(() => {
 			if (data.totalHits >= 40) {
 				refs.loadMoreBtn.classList.remove('is-hidden');
@@ -77,7 +79,7 @@ if (loadedItems < 40) {
 		};
 	appendHitsMarkup(hits);
 	loadedItems -= hits.length;
-	
+	console.log(loadedItems);
 }
 	} catch (error) {
 		console.log(error);
