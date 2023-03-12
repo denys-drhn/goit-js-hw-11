@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { Notify } from 'notiflix/build/notiflix-notify-aio';
 export default class ImagesApiServise {
 	constructor() {
 		this.searchQuery = '';
