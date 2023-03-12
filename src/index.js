@@ -15,57 +15,82 @@ refs.loadMoreBtn.addEventListener('click', onLoadMoreBtnClick);
 
 const imagesApiServise = new ImagesApiServise();
 // console.log(imagesApiServise);
-
+let loadedItems = 500;
 
 refs.loadMoreBtn.classList.add('is-hidden');
 
-function onSearchClick(event) {
+async function onSearchClick(event) {
 	event.preventDefault();
 	
 	imagesApiServise.query = event.currentTarget.elements.searchQuery.value.trim(); // значение ввода через метод SET + trim()
 	
 	if (imagesApiServise.query === '') {
 		Notify.warning("Sorry, there are no images matching your search query. Please try again.");
+		clearHitsMarkup()
+		refs.loadMoreBtn.classList.add('is-hidden');
 		return []; // якщо поле вводу пусте
 	}
 
 	imagesApiServise.resetPage();
 	refs.loadMoreBtn.classList.add('is-hidden');
-	imagesApiServise.fechImages().then(data => {
-
-	if (data.totalHits === 0) {
-	Notify.failure("Sorry, there are no images matching your search query. Please try again.");
-	} else {
-		Notify.success(`Hooray! We found ${data.totalHits} images.`);
-	}
-	// console.log(data.totalHits);
+	
+	try {
+		const data = await imagesApiServise.fechImages();
+		if (data.totalHits === 0) {
+			Notify.failure("Sorry, there are no images matching your search query. Please try again.");
+		} else {
+			Notify.success(`Hooray! We found ${data.totalHits} images.`);
+		};
 
 		const hits = data.hits;
-
-		
-		// console.log(hits);
 		clearHitsMarkup();
 		appendHitsMarkup(hits);
+		loadedItems -= hits.length;
 		setTimeout(() => {
 			if (data.totalHits >= 40) {
-			refs.loadMoreBtn.classList.remove('is-hidden');
-		}
-	}, 1000);
-	}).catch(error => console.log(error));	
-};
+				refs.loadMoreBtn.classList.remove('is-hidden');
+			}
+		}, 1000);
+		
+	} catch (error) {
+		console.log(error)
+	};
+}
 
-function onLoadMoreBtnClick() {
+
+
+async function onLoadMoreBtnClick() {
 	
-	imagesApiServise.fechImages().then(data => { 
+	try {
+		const data = await imagesApiServise.fechImages();
+		// console.log(data);
 		const hits = data.hits;
-		if (hits.length < 40) {
+		// console.log(hits.length);
+		
+		// if (hits.length < 40) {
+		// refs.loadMoreBtn.classList.add('is-hidden');
+		// Notify.failure("We're sorry, but you've reached the end of search results.");
+		// };
+
+		MAX_ITEMS = data.totalHits;
+		// console.log(MAX_ITEMS);
+		console.log(loadedItems);
+if (loadedItems < 40) {
+	refs.loadMoreBtn.classList.add('is-hidden');
+	Notify.failure("We're sorry, but you've reached the end of search results.");
+	appendHitsMarkup(hits);
+} else {
+	if (hits.length < 40) {
 		refs.loadMoreBtn.classList.add('is-hidden');
 		Notify.failure("We're sorry, but you've reached the end of search results.");
 		};
-		appendHitsMarkup(hits);
-	}).catch(error => {
+	appendHitsMarkup(hits);
+	loadedItems -= hits.length;
+	
+}
+	} catch (error) {
 		console.log(error);
-	});
+	}
 };
 
 
@@ -95,3 +120,49 @@ function appendHitsMarkup(hits) {
 function clearHitsMarkup() {
 	refs.galleryCardList.innerHTML = "";
 };
+
+
+// MAX_ITEMS = data.totalHits;
+// let loadedItems = 40;
+// if (loadedItems >= MAX_ITEMS) {
+// 	refs.loadMoreBtn.classList.add('is-hidden');
+// 	Notify.failure("We're sorry, but you've reached the end of search results.");
+// } else {
+// 	loadedItems += hits.length;
+// 	appendHitsMarkup(hits);
+// }
+
+
+
+// function onLoadMoreBtnClick() {
+	
+// 	imagesApiServise.fechImages().then(data => {
+// 		const hits = data.hits;
+// 		if (hits.length < 40) {
+// 		refs.loadMoreBtn.classList.add('is-hidden');
+// 		Notify.failure("We're sorry, but you've reached the end of search results.");
+// 		};
+
+
+// 		appendHitsMarkup(hits);
+// 	}).catch(error => {
+// 		console.log(error);
+// 	});
+// };
+
+// async function onLoadMoreBtnClick() {
+// 	try {
+
+// 		const data = await imagesApiServise.fechImages();
+// 		console.log(data);
+// 		const hits = data.hits;
+
+// 		if (hits.length < 40 ) {
+// 		refs.loadMoreBtn.classList.add('is-hidden');
+// 		Notify.failure("We're sorry, but you've reached the end of search results.");
+// 		};
+// 		appendHitsMarkup(hits);
+// 	} catch (error) {
+// 		console.log(error);
+// 	}
+// };
