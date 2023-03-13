@@ -1,7 +1,11 @@
 import './css/styles.css';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
-// import axios from 'axios';
-import ImagesApiServise from './fetchImages'
+import ImagesApiServise from './fetchImages';
+// Описан в документации
+import SimpleLightbox from "simplelightbox";
+// Дополнительный импорт стилей
+import "simplelightbox/dist/simple-lightbox.min.css";
+
 
 const refs = { //перенести в другой файл Модуль 12. HTTP-запросы (AJAX) 26/10/20   1ч 24минута
 
@@ -12,9 +16,11 @@ const refs = { //перенести в другой файл Модуль 12. HT
 
 refs.searchForm.addEventListener('submit', onSearchClick);
 refs.loadMoreBtn.addEventListener('click', onLoadMoreBtnClick);
+refs.galleryCardList.addEventListener('click', onGalleryCardClick);
 
 const imagesApiServise = new ImagesApiServise();
 // console.log(imagesApiServise);
+let gallery = new SimpleLightbox('.gallery a'); // https://simplelightbox.com/ 
 let loadedItems;
 
 refs.loadMoreBtn.classList.add('is-hidden');
@@ -45,6 +51,7 @@ async function onSearchClick(event) {
 		const hits = data.hits;
 		clearHitsMarkup();
 		appendHitsMarkup(hits);
+		gallery.refresh();
 		loadedItems = data.totalHits;
 		loadedItems -= hits.length;
 		
@@ -78,8 +85,9 @@ if (loadedItems < 40) {
 		Notify.failure("We're sorry, but you've reached the end of search results.");
 		};
 	appendHitsMarkup(hits);
+	gallery.refresh();
 	loadedItems -= hits.length;
-	console.log(loadedItems);
+	// console.log(loadedItems);
 }
 	} catch (error) {
 		console.log(error);
@@ -89,7 +97,9 @@ if (loadedItems < 40) {
 
 function appendHitsMarkup(hits) {
 	const markup = hits.map((hit) => `<div class="photo-card">
+<a href="${hit.largeImageURL}">
 <img src="${hit.webformatURL}" alt="${hit.tags}" loading="lazy" />
+</a>
 <div class="info">
 <p class="info-item">
 <b>Likes: ${hit.likes}</b>
@@ -113,6 +123,18 @@ function appendHitsMarkup(hits) {
 function clearHitsMarkup() {
 	refs.galleryCardList.innerHTML = "";
 };
+
+
+function onGalleryCardClick(event) {
+	event.preventDefault();	// *Запрети (перенаправлен на другую страницу) по умолчанию.
+
+	// *нажатие только по тегу IMG:
+	if (event.target.nodeName !== "IMG") { 
+	return;
+	};
+};
+
+
 
 
 // MAX_ITEMS = data.totalHits;
