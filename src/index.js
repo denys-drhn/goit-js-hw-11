@@ -5,6 +5,7 @@ import ImagesApiServise from './fetchImages';
 import SimpleLightbox from "simplelightbox";
 // Дополнительный импорт стилей
 import "simplelightbox/dist/simple-lightbox.min.css";
+import InfiniteAjaxScroll from '@webcreate/infinite-ajax-scroll';
 
 
 const refs = { //перенести в другой файл Модуль 12. HTTP-запросы (AJAX) 26/10/20   1ч 24минута
@@ -12,10 +13,12 @@ const refs = { //перенести в другой файл Модуль 12. HT
 	searchForm: document.querySelector('.search-form'),
 	loadMoreBtn: document.querySelector('.load-more'),
 	galleryCardList: document.querySelector('.gallery')
-}
+};
+
+refs.loadMoreBtn.classList.add('is-hidden');
 
 refs.searchForm.addEventListener('submit', onSearchClick);
-refs.loadMoreBtn.addEventListener('click', onLoadMoreBtnClick);
+// refs.loadMoreBtn.addEventListener('click', onLoadMoreBtnClick); // когда кнопка работает
 refs.galleryCardList.addEventListener('click', onGalleryCardClick);
 
 const imagesApiServise = new ImagesApiServise();
@@ -23,7 +26,7 @@ const imagesApiServise = new ImagesApiServise();
 let gallery = new SimpleLightbox('.gallery a'); // https://simplelightbox.com/ 
 let loadedItems;
 
-refs.loadMoreBtn.classList.add('is-hidden');
+
 
 async function onSearchClick(event) {
 	event.preventDefault();
@@ -51,48 +54,21 @@ async function onSearchClick(event) {
 		const hits = data.hits;
 		clearHitsMarkup();
 		appendHitsMarkup(hits);
-		gallery.refresh();
+		gallery.refresh(); // метод refresh() который обязательно нужно вызывать каждый раз после добавления новой группы карточек изображений.
 		loadedItems = data.totalHits;
 		loadedItems -= hits.length;
 		
 		setTimeout(() => {
 			if (data.totalHits >= 40) {
-				refs.loadMoreBtn.classList.remove('is-hidden');
+				refs.loadMoreBtn.classList.remove('is-hidden'); // когда кнопка работает
 			}
 		}, 1000);
 		
 	} catch (error) {
 		console.log(error)
 	};
-}
-
-
-
-async function onLoadMoreBtnClick() {
-	
-	try {
-		const data = await imagesApiServise.fechImages();
-
-		const hits = data.hits;
-
-if (loadedItems < 40) {
-	refs.loadMoreBtn.classList.add('is-hidden');
-	Notify.failure("We're sorry, but you've reached the end of search results.");
-	appendHitsMarkup(hits);
-} else {
-	if (hits.length < 40) {
-		refs.loadMoreBtn.classList.add('is-hidden');
-		Notify.failure("We're sorry, but you've reached the end of search results.");
-		};
-	appendHitsMarkup(hits);
-	gallery.refresh();
-	loadedItems -= hits.length;
-	// console.log(loadedItems);
-}
-	} catch (error) {
-		console.log(error);
-	}
 };
+
 
 
 function appendHitsMarkup(hits) {
@@ -127,28 +103,136 @@ function clearHitsMarkup() {
 
 function onGalleryCardClick(event) {
 	event.preventDefault();	// *Запрети (перенаправлен на другую страницу) по умолчанию.
-
+// console.log(event.target.nodeName);
 	// *нажатие только по тегу IMG:
 	if (event.target.nodeName !== "IMG") { 
-	return;
+		return;
+
+		// *У библиотеки есть метод refresh() который обязательно нужно
+		//  вызывать каждый раз после добавления новой группы карточек изображений.
 	};
 };
 
+// --------------------------------------------- Infinite Ajax Scroll
+
+// const ias = new InfiniteAjaxScroll('.gallery', {
+//   item: '.photo-card',
+//   next: '.load-more',
+
+//   history: false,
+//   prefill: true,
+//   responseType: 'text',
+//   scrollThreshold: 100,
+//   spinner: {
+//     element: '.loader',
+//     delay: 600,
+//     show: function(element) {
+//       element.classList.remove('is-hidden');
+//     },
+//     hide: function(element) {
+//       element.classList.add('is-hidden');
+//     }
+//   },
+//   onInit: function() {
+//     console.log('InfiniteAjaxScroll initialized.');
+//   },
+//   onRender: function(items) {
+// 	  console.log('New items added to the DOM.');
+	  
+//     gallery.refresh();
+//   },
+//   onLoad: function() {
+//     console.log('New items loaded from the server.');
+//   },
+//   onScroll: function() {
+//     console.log('User scrolled the page.');
+//   },
+//   onEnd: function() {
+//     console.log('No more items to load.');
+//   },
+//   onError: function() {
+//     console.log('An error occurred while loading new items.');
+//   }
+// });
 
 
 
-// MAX_ITEMS = data.totalHits;
-// let loadedItems = 40;
-// if (loadedItems >= MAX_ITEMS) {
+
+// --------------------------------------------- intersectionObserved
+const sentinel = refs.loadMoreBtn;
+const options = {
+	// root: по умолчанию window, но можно задать любой элемент-контейнер
+	rootMargin: '0px 0px 75px 0px',
+	threshold: 0,
+};
+
+const observer = new IntersectionObserver(onIntersection, options);
+observer.observe(sentinel);
+
+
+function onIntersection(entries) {
+	if (entries[0].isIntersecting) {
+	loadMoreImages();
+	}
+};
+
+async function loadMoreImages() {
+	
+	try {
+		const data = await imagesApiServise.fechImages();
+
+		const hits = data.hits;
+
+if (loadedItems < 40) {
+	refs.loadMoreBtn.classList.add('is-hidden');
+	Notify.failure("We're sorry, but you've reached the end of search results.");
+	appendHitsMarkup(hits);
+	gallery.refresh();
+} else {
+	if (hits.length < 40) {
+		Notify.failure("We're sorry, but you've reached the end of search results.");
+		};
+	appendHitsMarkup(hits);
+	gallery.refresh(); // метод refresh() который обязательно нужно вызывать каждый раз после добавления новой группы карточек изображений.
+	loadedItems -= hits.length;
+	// console.log(loadedItems);
+}
+	} catch (error) {
+		console.log(error);
+	}
+};
+
+
+// -------------------------------------------
+
+
+// async function onLoadMoreBtnClick() {
+	
+// 	try {
+// 		const data = await imagesApiServise.fechImages();
+
+// 		const hits = data.hits;
+
+// if (loadedItems < 40) {
 // 	refs.loadMoreBtn.classList.add('is-hidden');
 // 	Notify.failure("We're sorry, but you've reached the end of search results.");
-// } else {
-// 	loadedItems += hits.length;
 // 	appendHitsMarkup(hits);
+// } else {
+// 	if (hits.length < 40) {
+// 		refs.loadMoreBtn.classList.add('is-hidden');
+// 		Notify.failure("We're sorry, but you've reached the end of search results.");
+// 		};
+// 	appendHitsMarkup(hits);
+// 	gallery.refresh(); // метод refresh() который обязательно нужно вызывать каждый раз после добавления новой группы карточек изображений.
+// 	loadedItems -= hits.length;
+// 	// console.log(loadedItems);
 // }
+// 	} catch (error) {
+// 		console.log(error);
+// 	}
+// };
 
-
-
+// -------------------------------------------
 // function onLoadMoreBtnClick() {
 	
 // 	imagesApiServise.fechImages().then(data => {
