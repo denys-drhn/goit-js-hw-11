@@ -57,11 +57,15 @@ async function onSearchClick(event) {
 		gallery.refresh(); // метод refresh() который обязательно нужно вызывать каждый раз после добавления новой группы карточек изображений.
 		loadedItems = data.totalHits;
 		loadedItems -= hits.length;
-		setTimeout(() => {
-			if (data.totalHits >= 40) {
-				refs.loadMoreBtn.classList.remove('is-hidden'); // когда кнопка работает
-			}
-		}, 1000);
+
+		// --------------
+
+		// setTimeout(() => {
+		// 	if (data.totalHits >= 40) {
+		// 		refs.loadMoreBtn.classList.remove('is-hidden'); // когда кнопка работает
+		// 		console.log('добавить кнопку');
+		// 	}
+		// }, 1000);
 	} catch (error) {
 		console.log(error)
 	};
@@ -90,6 +94,18 @@ function appendHitsMarkup(hits) {
 </div>`).join("");
 	// refs.countryInfo.innerHTML = '';
 	refs.galleryCardList.insertAdjacentHTML('beforeend', markup);
+
+	// console.log(hits);
+
+	if (hits.length === 40) {														// Infinite Ajax Scroll
+		const ias = new InfiniteAjaxScroll('.gallery', {
+	item: '.photo-card',
+	next: onLoadMoreBtnClick,
+	pagination: false,
+	logger: false, // скривает console.log
+});
+	}
+
 };
 
 function clearHitsMarkup() {
@@ -109,49 +125,49 @@ function onGalleryCardClick(event) {
 };
 
 // --------------------------------------------- intersectionObserved
-const sentinel = refs.loadMoreBtn;
-const options = {
-	// root: по умолчанию window, но можно задать любой элемент-контейнер
-	rootMargin: '0px 0px 75px 0px',
-	threshold: 0,
-};
+// const sentinel = refs.loadMoreBtn;
+// const options = {
+// 	// root: по умолчанию window, но можно задать любой элемент-контейнер
+// 	rootMargin: '0px 0px 75px 0px',
+// 	threshold: 0,
+// };
 
-const observer = new IntersectionObserver(onIntersection, options);
-observer.observe(sentinel);
+// const observer = new IntersectionObserver(onIntersection, options);
+// observer.observe(sentinel);
 
 
-function onIntersection(entries) {
-	if (entries[0].isIntersecting) {
-	loadMoreImages();
-	}
-};
+// function onIntersection(entries) {
+// 	if (entries[0].isIntersecting) {
+// 	loadMoreImages();
+// 	}
+// };
 
-async function loadMoreImages() {
+// async function loadMoreImages() {
 	
-	try {
-		const data = await imagesApiServise.fechImages();
+// 	try {
+// 		const data = await imagesApiServise.fechImages();
 
-		const hits = data.hits;
+// 		const hits = data.hits;
 
-if (loadedItems < 40) {
-	refs.loadMoreBtn.classList.add('is-hidden');
-	Notify.failure("We're sorry, but you've reached the end of search results.");
-	appendHitsMarkup(hits);
-	gallery.refresh();
-} else {
-	if (hits.length < 40) {
-		refs.loadMoreBtn.classList.add('is-hidden');
-		Notify.failure("We're sorry, but you've reached the end of search results.");
-		};
-	appendHitsMarkup(hits);
-	gallery.refresh(); // метод refresh() который обязательно нужно вызывать каждый раз после добавления новой группы карточек изображений.
-	loadedItems -= hits.length;
-	// console.log(loadedItems);
-}
-	} catch (error) {
-		console.log(error);
-	}
-};
+// if (loadedItems < 40) {
+// 	refs.loadMoreBtn.classList.add('is-hidden');
+// 	Notify.failure("We're sorry, but you've reached the end of search results.");
+// 	appendHitsMarkup(hits);
+// 	gallery.refresh();
+// } else {
+// 	if (hits.length < 40) {
+// 		refs.loadMoreBtn.classList.add('is-hidden');
+// 		Notify.failure("We're sorry, but you've reached the end of search results.");
+// 		};
+// 	appendHitsMarkup(hits);
+// 	gallery.refresh(); // метод refresh() который обязательно нужно вызывать каждый раз после добавления новой группы карточек изображений.
+// 	loadedItems -= hits.length;
+// 	// console.log(loadedItems);
+// }
+// 	} catch (error) {
+// 		console.log(error);
+// 	}
+// };
 
 
 // ------------------------------------------- onLoadMoreBtnClick
@@ -184,20 +200,15 @@ if (loadedItems < 40) {
 
 // --------------------------------------------- Infinite Ajax Scroll
 
-// 		if (loadedItems === 40) {
-// window.ias = new InfiniteAjaxScroll('.gallery', {
-//   item: '.photo-card',
-// 	next: loadMoreImages,
-//   pagination: false,
-//   trigger: false,
-// });
-// 		};
+
 
 // const ias = new InfiniteAjaxScroll('.gallery', {
 //   item: '.photo-card',
-//   next: loadMoreImages,
-//   trigger: false,
+//   next: onLoadMoreBtnClick,
+// 	trigger: false,
+//  pagination: false,
 // });
+
 
 // async function loadMoreImages() {
 // 	try {
@@ -221,20 +232,8 @@ if (loadedItems < 40) {
 // 	}
 // }
 
-
-
-
-
+// =================================
 // -------------------------------------------
-
-
-
-
-
-
-
-
-
 
 
 
@@ -271,3 +270,5 @@ if (loadedItems < 40) {
 // 		console.log(error);
 // 	}
 // };
+// =============================
+
