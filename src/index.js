@@ -15,10 +15,10 @@ const refs = { //перенести в другой файл Модуль 12. HT
 	galleryCardList: document.querySelector('.gallery')
 };
 
-refs.loadMoreBtn.classList.add('is-hidden');
+refs.loadMoreBtn.classList.add('is-hidden'); // ховаємо кнопку
 
 refs.searchForm.addEventListener('submit', onSearchClick);
-// refs.loadMoreBtn.addEventListener('click', onLoadMoreBtnClick); // когда кнопка работает
+refs.loadMoreBtn.addEventListener('click', onLoadMoreBtnClick); // когда кнопка работает
 refs.galleryCardList.addEventListener('click', onGalleryCardClick);
 
 const imagesApiServise = new ImagesApiServise();
@@ -36,9 +36,9 @@ async function onSearchClick(event) {
 	if (imagesApiServise.query === '') {
 		Notify.warning("Sorry, there are no images matching your search query. Please try again.");
 		clearHitsMarkup()
-		refs.loadMoreBtn.classList.add('is-hidden');
-		return []; // якщо поле вводу пусте
-	}
+		refs.loadMoreBtn.classList.add('is-hidden'); // сховав для бібліотеки
+		return null; // якщо поле вводу пусте
+	};
 
 	imagesApiServise.resetPage();
 	refs.loadMoreBtn.classList.add('is-hidden');
@@ -57,18 +57,15 @@ async function onSearchClick(event) {
 		gallery.refresh(); // метод refresh() который обязательно нужно вызывать каждый раз после добавления новой группы карточек изображений.
 		loadedItems = data.totalHits;
 		loadedItems -= hits.length;
-		
 		setTimeout(() => {
 			if (data.totalHits >= 40) {
 				refs.loadMoreBtn.classList.remove('is-hidden'); // когда кнопка работает
 			}
 		}, 1000);
-		
 	} catch (error) {
 		console.log(error)
 	};
 };
-
 
 
 function appendHitsMarkup(hits) {
@@ -95,11 +92,9 @@ function appendHitsMarkup(hits) {
 	refs.galleryCardList.insertAdjacentHTML('beforeend', markup);
 };
 
-
 function clearHitsMarkup() {
 	refs.galleryCardList.innerHTML = "";
 };
-
 
 function onGalleryCardClick(event) {
 	event.preventDefault();	// *Запрети (перенаправлен на другую страницу) по умолчанию.
@@ -112,51 +107,6 @@ function onGalleryCardClick(event) {
 		//  вызывать каждый раз после добавления новой группы карточек изображений.
 	};
 };
-
-// --------------------------------------------- Infinite Ajax Scroll
-
-// const ias = new InfiniteAjaxScroll('.gallery', {
-//   item: '.photo-card',
-//   next: '.load-more',
-
-//   history: false,
-//   prefill: true,
-//   responseType: 'text',
-//   scrollThreshold: 100,
-//   spinner: {
-//     element: '.loader',
-//     delay: 600,
-//     show: function(element) {
-//       element.classList.remove('is-hidden');
-//     },
-//     hide: function(element) {
-//       element.classList.add('is-hidden');
-//     }
-//   },
-//   onInit: function() {
-//     console.log('InfiniteAjaxScroll initialized.');
-//   },
-//   onRender: function(items) {
-// 	  console.log('New items added to the DOM.');
-	  
-//     gallery.refresh();
-//   },
-//   onLoad: function() {
-//     console.log('New items loaded from the server.');
-//   },
-//   onScroll: function() {
-//     console.log('User scrolled the page.');
-//   },
-//   onEnd: function() {
-//     console.log('No more items to load.');
-//   },
-//   onError: function() {
-//     console.log('An error occurred while loading new items.');
-//   }
-// });
-
-
-
 
 // --------------------------------------------- intersectionObserved
 const sentinel = refs.loadMoreBtn;
@@ -190,6 +140,7 @@ if (loadedItems < 40) {
 	gallery.refresh();
 } else {
 	if (hits.length < 40) {
+		refs.loadMoreBtn.classList.add('is-hidden');
 		Notify.failure("We're sorry, but you've reached the end of search results.");
 		};
 	appendHitsMarkup(hits);
@@ -203,36 +154,91 @@ if (loadedItems < 40) {
 };
 
 
-// -------------------------------------------
+// ------------------------------------------- onLoadMoreBtnClick
 
-
-// async function onLoadMoreBtnClick() {
+async function onLoadMoreBtnClick() {
 	
+	try {
+		const data = await imagesApiServise.fechImages();
+
+		const hits = data.hits;
+
+if (loadedItems < 40) {
+	refs.loadMoreBtn.classList.add('is-hidden');
+	Notify.failure("We're sorry, but you've reached the end of search results.");
+	appendHitsMarkup(hits);
+} else {
+	if (hits.length < 40) {
+		refs.loadMoreBtn.classList.add('is-hidden');
+		Notify.failure("We're sorry, but you've reached the end of search results.");
+		};
+	appendHitsMarkup(hits);
+	gallery.refresh(); // метод refresh() который обязательно нужно вызывать каждый раз после добавления новой группы карточек изображений.
+	loadedItems -= hits.length;
+	// console.log(loadedItems);
+}
+	} catch (error) {
+		console.log(error);
+	}
+};
+
+// --------------------------------------------- Infinite Ajax Scroll
+
+// 		if (loadedItems === 40) {
+// window.ias = new InfiniteAjaxScroll('.gallery', {
+//   item: '.photo-card',
+// 	next: loadMoreImages,
+//   pagination: false,
+//   trigger: false,
+// });
+// 		};
+
+// const ias = new InfiniteAjaxScroll('.gallery', {
+//   item: '.photo-card',
+//   next: loadMoreImages,
+//   trigger: false,
+// });
+
+// async function loadMoreImages() {
 // 	try {
 // 		const data = await imagesApiServise.fechImages();
 
 // 		const hits = data.hits;
 
-// if (loadedItems < 40) {
-// 	refs.loadMoreBtn.classList.add('is-hidden');
-// 	Notify.failure("We're sorry, but you've reached the end of search results.");
-// 	appendHitsMarkup(hits);
-// } else {
-// 	if (hits.length < 40) {
-// 		refs.loadMoreBtn.classList.add('is-hidden');
-// 		Notify.failure("We're sorry, but you've reached the end of search results.");
-// 		};
-// 	appendHitsMarkup(hits);
-// 	gallery.refresh(); // метод refresh() который обязательно нужно вызывать каждый раз после добавления новой группы карточек изображений.
-// 	loadedItems -= hits.length;
-// 	// console.log(loadedItems);
-// }
+// 		if (loadedItems < 40) {
+// 			// refs.loadMoreBtn.classList.add('is-hidden');
+// 			Notify.failure("We're sorry, but you've reached the end of search results.");
+// 			appendHitsMarkup(hits);
+// 		}
+
+// 		appendHitsMarkup(hits);
+// 		gallery.refresh(); // метод refresh() который обязательно нужно вызывать каждый раз после добавления новой группы карточек изображений.
+// 		loadedItems -= hits.length;
+// 		console.log(hits.length);
+// 		// console.log(loadedItems);
 // 	} catch (error) {
 // 		console.log(error);
 // 	}
-// };
+// }
+
+
+
+
 
 // -------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
 // function onLoadMoreBtnClick() {
 	
 // 	imagesApiServise.fechImages().then(data => {
