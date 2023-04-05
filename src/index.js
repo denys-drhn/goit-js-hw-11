@@ -52,6 +52,7 @@ async function onSearchClick(event) {
 		};
 
 		const hits = data.hits;
+		// console.log(hits);
 		clearHitsMarkup();
 		appendHitsMarkup(hits);
 		gallery.refresh(); // метод refresh() который обязательно нужно вызывать каждый раз после добавления новой группы карточек изображений.
